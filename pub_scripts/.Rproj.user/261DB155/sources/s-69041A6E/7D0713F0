@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1548380262654.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "4|30|6|0|\n8|27|18|0|\n",
+    "hash" : "0",
+    "id" : "7D0713F0",
+    "lastKnownWriteTime" : 1551417217,
+    "last_content_update" : 1551417748244,
+    "path" : "~/Syncplicity Folders/RDS26026-Work/Deakin/res_projects/ellyse_mitchell/pub_scripts/data_processing.R",
+    "project_path" : "data_processing.R",
+    "properties" : {
+        "cursorPosition" : "7,0",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
