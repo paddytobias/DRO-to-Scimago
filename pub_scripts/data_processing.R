@@ -1,15 +1,28 @@
 suppressWarnings(library(stringr))
 suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
 
+src_data_path = "../src_data"
+output_data_path = "../output_data"
+## url for dataset from scimago
+url_content = "https://www.scimagojr.com/journalrank.php?out=xls"
+
+args = commandArgs(trailingOnly = T)
+pub_fname = as.character(args[1])
+if (is.na(pub_fname)) {
+	print("ERROR: Missing parameter for publication data")
+	quit(status=1)
+}
+
+
 ## functions
 scim_file_exists = function(){
-  "scimago_dat.csv" %in% list.files("../src_data/")
+  "scimago_dat.csv" %in% list.files(src_data_path)
 }
 
 download_scim = function(){
   tryCatch({
-    message("\n Downloading Scimago dataset. Stored in src_data")
-    download.file(url = url_content, destfile = "../src_data/scimago_dat.csv")
+    message(paste0("\n Downloading Scimago dataset. Stored in ", src_data_path))
+    download.file(url = url_content, destfile = file.path(src_data_path, "scimago_dat.csv"))
     message("\n Download successful")
   }, warning = function(war) {
     print(paste("WARNING:  ",war))
@@ -18,21 +31,13 @@ download_scim = function(){
   })
 }
 
-
-args = commandArgs(trailingOnly = T)
-pub_fname = as.character(args[1])
-
-
-## url for dataset from scimago
-url_content = "https://www.scimagojr.com/journalrank.php?out=xls"
-
 scim_download = ""
 ## prompt for downloading
 if (!interactive()){
   if (scim_file_exists()){
     while (!(scim_download %in% c("Y", "N"))){
       cat("Scimago data already exists. Do you want to download the latest version? (Y / N) ")
-      scim_download = readLines(file("stdin"),1)
+      scim_download = toupper(readLines(con = file("stdin"), n = 1))
     }
   }
 }
@@ -45,12 +50,12 @@ if (scim_download == "Y" | !scim_file_exists()){
   
 }
 
-message("\n Now joining ", pub_fname, " with Scimago journal ranking\n")
+message("\n Now joining '", pub_fname, "' with Scimago journal ranking\n")
 
 
 ### loading required tables
-scimago = suppressWarnings(suppressMessages(read_delim("../src_data/scimago_dat.csv", delim = ";")))
-journal_pubs_issns = suppressMessages(read_csv(paste0("../src_data/", pub_fname)))
+scimago = suppressWarnings(suppressMessages(read_delim(file.path(src_data_path, "scimago_dat.csv"), delim = ";")))
+journal_pubs_issns = suppressMessages(read_csv(file.path(src_data_path, pub_fname)))
 
 ## processing journal publications data from DRO 
 ## to clean up ISSNs into a state that matches the scimago dataset
@@ -90,7 +95,7 @@ joined_spltCats = joined_tables %>%
   arrange(`DRO PID`)
 
 ## outputting both datasets
-write_csv(joined_tables, "../output_data/joined_tables.csv")
-write_csv(joined_spltCats, "../output_data/joined_tables_with_splt_categories.csv")
+write_csv(joined_tables, file.path(output_data_path, "joined_tables.csv"))
+write_csv(joined_spltCats, file.path(output_data_path, "joined_tables_with_splt_categories.csv"))
 
-message("\n\nProcessing complete: You can find the data in the 'output_data' folder\n\n")
+message(paste0("\n\nProcessing complete: You can find the data in the '", output_data_path, "' folder\n\n"))
