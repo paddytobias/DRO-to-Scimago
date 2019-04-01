@@ -13,5 +13,6 @@ The program then writes two files to `output_data/` folder:
 
 ## Example execution 
 `cd path/to/DRO_scimago_join/`
+
 `Rscript pub_scripts/data_processing.R Pubs-Elements-ISSN.csv`
 
