@@ -12,5 +12,6 @@ The program then writes two files to `output_data/` folder:
 2. `joined_tables_with_splt_categories.csv` - this table is a derivative of the first, but includes cleaned up categories and quartiles that the academic has published in. It is in a one-row-per-category format, and therefore contains duplications in the publication data (because one publication can be filed under  more than one category).
 
 ## Example execution 
-`Rscript data_processing.R Pubs-Elements-ISSN.csv`
+`cd path/to/DRO_scimago_join/`
+`Rscript pub_scripts/data_processing.R Pubs-Elements-ISSN.csv`
 

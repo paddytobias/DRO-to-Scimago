@@ -1,8 +1,8 @@
 suppressWarnings(library(stringr))
 suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
 
-src_data_path = "../src_data"
-output_data_path = "../output_data"
+src_data_path = "src_data"
+output_data_path = "output_data"
 ## url for dataset from scimago
 url_content = "https://www.scimagojr.com/journalrank.php?out=xls"
 

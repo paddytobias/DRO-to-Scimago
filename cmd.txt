@@ -1,0 +1,6 @@
+
+## command to run program
+
+cd C:\Users\lyse\Syncplicity\RDS27532-Something benign\library_pubs\DRO_scimago_join\pub_scripts>
+
+C:\R\R-3.5.1\bin\Rscript.exe data_processing.R Pubs-Elements-ISSN.csv
