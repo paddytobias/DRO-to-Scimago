@@ -3,27 +3,28 @@ suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
 
 src_data_path = "src_data"
 output_data_path = "output_data"
-## url for dataset from scimago
-url_content = "https://www.scimagojr.com/journalrank.php?out=xls"
+url_content = "https://www.scimagojr.com/journalrank.php?out=xls" ## url for dataset from scimago
 
 args = commandArgs(trailingOnly = T)
 pub_fname = as.character(args[1])
-if (is.na(pub_fname)) {
-	print("ERROR: Missing parameter for publication data")
-	quit(status=1)
-}
 
+## catch if filename not provided
+if (is.na(pub_fname)) stop("ERROR: Missing filename for publication data. This data should be in the src_data folder")
+## catch if src_data folder doesn't exist
+if (!dir.exists(src_data_path)) stop("src_data folder doesn't exist. You must have this folder with the DRO dataset in it.")
+## create output_data folder if it doesn't exist
+if (!dir.exists(output_data_path)) dir.create(output_data_path)
 
 ## functions
 scim_file_exists = function(){
-  "scimago_dat.csv" %in% list.files(src_data_path)
+  TRUE %in% grepl("scimago*", list.files(src_data_path))
 }
 
 download_scim = function(){
   tryCatch({
-    message(paste0("\n Downloading Scimago dataset. Stored in ", src_data_path))
-    download.file(url = url_content, destfile = file.path(src_data_path, "scimago_dat.csv"))
-    message("\n Download successful")
+    message(paste0("\nDownloading Scimago dataset. Stored in ", src_data_path))
+    download.file(url = url_content, destfile = file.path(src_data_path, "scimago.csv"))
+    message("\nDownload successful")
   }, warning = function(war) {
     print(paste("WARNING:  ",war))
   }, error = function(err) {
@@ -31,30 +32,27 @@ download_scim = function(){
   })
 }
 
-scim_download = ""
+to_download = ""
 ## prompt for downloading
 if (!interactive()){
   if (scim_file_exists()){
-    while (!(scim_download %in% c("Y", "N"))){
+    while (!(to_download %in% c("Y", "N"))){
       cat("Scimago data already exists. Do you want to download the latest version? (Y / N) ")
-      scim_download = toupper(readLines(con = file("stdin"), n = 1))
+      to_download = toupper(readLines(con = file("stdin"), n = 1))
     }
   }
 }
 
 ## download only if answered "Y"
-if (scim_download == "Y" | !scim_file_exists()){
-  # download file from Scimago
-  download_scim()
+if (to_download == "Y" | !scim_file_exists()){
+  download_scim() # download file from Scimago
   message("\nLatest Scimago dataset downloaded into src_data/")
-  
 }
 
 message("\n Now joining '", pub_fname, "' with Scimago journal ranking\n")
 
-
 ### loading required tables
-scimago = suppressWarnings(suppressMessages(read_delim(file.path(src_data_path, "scimago_dat.csv"), delim = ";")))
+scimago = suppressWarnings(suppressMessages(read_delim(file.path(src_data_path, "scimago.csv"), delim = ";")))
 journal_pubs_issns = suppressMessages(read_csv(file.path(src_data_path, pub_fname)))
 
 ## processing journal publications data from DRO 
@@ -68,13 +66,13 @@ journal_pubs_issn_processed = journal_pubs_issns %>%
   unnest(ISSN)
 
 ## transforming scimago into a one-row-per-ISSN format
-scimago_processed = scimago %>% 
+scimago_processed = suppressWarnings(scimago %>% 
   separate(Issn, c("issn1", "issn2"), sep = ", ") %>% 
   gather("key", "ISSN", c("issn1", "issn2")) %>% 
   select(-key) %>% 
   mutate(ISSN = ifelse(nchar(ISSN)==7, paste0(ISSN, "X"), ISSN)) %>% ## if an ISSN contains only 7 characters then adding an "X" to the end to suit the standard
   filter(!is.na(ISSN) & ISSN != "-") %>% ## removing empty ISSNs in case there are any
-  arrange(Title)
+  arrange(Title))
 
 ## joining Pubs dataset and Scimago dataset
 joined_tables = journal_pubs_issn_processed %>% 
