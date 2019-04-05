@@ -51,8 +51,18 @@ if (to_download == "Y" | !scim_file_exists()){
 
 message("\n Now joining '", pub_fname, "' with Scimago journal ranking\n")
 
+## prompt for name of output file
+out_name = NA
+if (!interactive()){
+  while (is.na(out_name)){
+      cat("What do you want to name the output file? ")
+      out_name = toupper(readLines(con = file("stdin"), n = 1))
+  }
+}
+
 ### loading required tables
-scimago = suppressWarnings(suppressMessages(read_delim(file.path(src_data_path, "scimago.csv"), delim = ";")))
+scimago = suppressWarnings(suppressMessages(read_delim(file.path(src_data_path, "scimago.csv"), delim = ";", 
+                     col_types = cols(SJR = "c"))))
 journal_pubs_issns = suppressMessages(read_csv(file.path(src_data_path, pub_fname)))
 
 ## processing journal publications data from DRO 
@@ -69,31 +79,38 @@ journal_pubs_issn_processed = journal_pubs_issns %>%
 scimago_processed = suppressWarnings(scimago %>% 
   separate(Issn, c("issn1", "issn2"), sep = ", ") %>% 
   gather("key", "ISSN", c("issn1", "issn2")) %>% 
-  select(-key) %>% 
+  select(-key) %>%
   mutate(ISSN = ifelse(nchar(ISSN)==7, paste0(ISSN, "X"), ISSN)) %>% ## if an ISSN contains only 7 characters then adding an "X" to the end to suit the standard
-  filter(!is.na(ISSN) & ISSN != "-") %>% ## removing empty ISSNs in case there are any
-  arrange(Title))
+  filter(!is.na(ISSN) & ISSN != "-")) %>% ## removing empty ISSNs in case there are any
+  mutate(SJR = str_replace(.$SJR, ",", "."))
 
 ## joining Pubs dataset and Scimago dataset
 joined_tables = journal_pubs_issn_processed %>% 
+  select(-SJR) %>% 
   left_join(scimago_processed, by = c("ISSN"="ISSN")) %>% ## using left outer join, to keep publications that don't have a journal in the Scimago list
   rename("journal_title" = "Title.y", "article_title"="Title.x") %>% 
   group_by(`DRO PID`) %>% 
   mutate(ISSN = paste(ISSN, collapse = ", ")) %>% 
   distinct(`DRO PID`, .keep_all = T) %>% 
-  arrange(article_title)
+  select(-c(Rank, Sourceid, journal_title, Type, 
+            starts_with("Total"), 
+            starts_with("Cit"), 
+            starts_with("Ref"), Country, Publisher)) %>% 
+  arrange(article_title) %>% 
+  select(13, 7, 2, 4:6, 19, 8:12, 16:18, c(1, 15, 3, 14))
 
 ## processing the joined tables further, cleaning up categories and Quartiles
 joined_spltCats = joined_tables %>% 
   distinct(`DRO PID`, .keep_all = T) %>% 
   mutate(Categories = strsplit(Categories,"; ")) %>%
   unnest(Categories) %>% 
-  mutate("Quartiles" = str_replace(Categories, "(.*)(\\(Q)(.*)(\\))", "\\3"), 
+  mutate(Quartiles = str_replace(Categories, "(.*)(\\(Q)(.*)(\\))", "\\3"), 
          Categories = str_replace(Categories, "(.*)(\\()(.*)(\\))", "\\1")) %>% 
-  arrange(`DRO PID`)
+  arrange(`DRO PID`) %>% 
+  select(1:6, 19:20, 7:18)
 
 ## outputting both datasets
-write_csv(joined_tables, file.path(output_data_path, "joined_tables.csv"))
-write_csv(joined_spltCats, file.path(output_data_path, "joined_tables_with_splt_categories.csv"))
+write_csv(joined_tables, file.path(output_data_path, paste0("DRO2scim_", out_name, ".csv")))
+write_csv(joined_spltCats, file.path(output_data_path, paste0("DRO2scim-spltcats_", out_name, ".csv")))
 
 message(paste0("\n\nProcessing complete: You can find the data in the '", output_data_path, "' folder\n\n"))
