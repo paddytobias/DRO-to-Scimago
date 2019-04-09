@@ -2,9 +2,7 @@ suppressWarnings(library(stringr))
 suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
 
 out_files = list.files("output_data", full.names = T)
-
 splt_dat = out_files[grep("spltcats", out_files)]
-
 dro2scim = read.csv(splt_dat)
 
 dro2scim %>% 
