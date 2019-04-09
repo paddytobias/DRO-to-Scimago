@@ -11,7 +11,7 @@ The program then writes two files to `output_data/` folder:
 1. `joined_tables.csv` - this table represents the basic join of the Scimago data with the academic's publication list. Expect that some rows will contain NAs which indicate where the Scimago data didn't contain the journal that the academic had published in
 2. `joined_tables_with_splt_categories.csv` - this table is a derivative of the first, but includes cleaned up categories and quartiles that the academic has published in. It is in a one-row-per-category format, and therefore contains duplications in the publication data (because one publication can be filed under  more than one category).
 
-## Set up
+## Set-up
 Before you run the program, you will need to install the R dependencies. You can do this by running:
 
 `Rscript pub_scripts/install_dependencies.R`
