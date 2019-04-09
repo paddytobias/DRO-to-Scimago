@@ -13,6 +13,7 @@ The program then writes two files to `output_data/` folder:
 
 ## Set up
 Before you run the program, you will need to install the R dependencies. You can do this by running:
+
 `Rscript pub_scripts/install_dependencies.R`
 
 ## Example execution 
